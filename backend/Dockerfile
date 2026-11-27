@@ -1,6 +1,9 @@
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
+# COPYFILE_DISABLE evita metadatos AppleDouble si la imagen se construye en macOS.
+# En Windows no cambia el comando ni el resultado.
+ENV COPYFILE_DISABLE=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 

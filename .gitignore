@@ -68,6 +68,7 @@ htmlcov/
 documentacion-docente/
 uml-mcp-main/
 docs/
+docs/escritura.md
 
 # Dependencias que se instalan en cada máquina
 node_modules/

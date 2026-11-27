@@ -1,0 +1,34 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam padding 16
+skinparam nodesep 18
+skinparam ranksep 28
+skinparam rectangleBackgroundColor white
+skinparam rectangleBorderColor #222222
+skinparam arrowColor #222222
+left to right direction
+
+rectangle "AndesApp" as App
+rectangle "Páginas" as Paginas
+rectangle "ViewModel" as VM
+rectangle "validators" as Val
+rectangle "AppState" as State
+rectangle "ApiBank" as Bank
+rectangle "Gateway" as Gw
+rectangle "ApiClient" as Client
+rectangle "API FastAPI" as API
+
+App --> Paginas
+Paginas --> VM
+VM --> Val
+App --> State
+State --> Bank
+Bank ..> Gw : implementa
+Bank --> Client
+Client --> API : JSON /api/v1
+@enduml

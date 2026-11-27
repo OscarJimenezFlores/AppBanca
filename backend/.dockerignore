@@ -4,6 +4,7 @@ __pycache__
 .mypy_cache
 *.pyc
 .env
+# Metadatos de macOS. En Windows no existen, y el comando sigue siendo docker compose up --build.
 ._*
 .DS_Store
 **/._*

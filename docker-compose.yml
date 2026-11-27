@@ -1,5 +1,6 @@
 name: andesbank
 
+# COPYFILE_DISABLE=1 vive en backend/Dockerfile. En Windows no hace falta anteponer nada.
 services:
   db:
     image: postgres:16-alpine
