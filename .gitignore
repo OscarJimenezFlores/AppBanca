@@ -1,0 +1,117 @@
+# macOS y copias AppleDouble de volúmenes externos
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+.apdisk
+__MACOSX/
+.Trash-*
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Editores y ofimática
+.idea/
+.vscode/
+*.code-workspace
+*~
+*.swp
+*.swo
+*.tmp
+*.temp
+*.bak
+~$*
+.~lock.*#
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.python-version
+*.egg-info/
+.coverage
+htmlcov/
+
+# Secretos
+.env
+.env.*
+!.env.example
+
+# No viaja al repositorio que clonan los alumnos.
+# Lo que sí se comparte es backend, mobile, postman, scripts,
+# docker-compose.yml, .github y README.md.
+documentacion-docente/
+uml-mcp-main/
+docs/
+
+# Dependencias que se instalan en cada máquina
+node_modules/
+
+# Flutter / Dart
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/build/
+mobile/coverage/
+mobile/.pub-cache/
+mobile/**/Generated.xcconfig
+mobile/**/flutter_export_environment.sh
+mobile/**/Flutter.podspec
+mobile/**/Pods/
+mobile/**/.symlinks/
+mobile/**/xcuserdata/
+mobile/**/*.mode1v3
+mobile/**/*.mode2v3
+mobile/**/*.pbxuser
+mobile/**/*.perspectivev3
+mobile/**/DerivedData/
+*.iml
+
+# Android
+mobile/**/.gradle/
+mobile/**/local.properties
+mobile/**/captures/
+mobile/**/*.apk
+mobile/**/*.aab
+mobile/**/*.ap_
+mobile/**/output-metadata.json
+
+# iOS
+mobile/**/*.xcuserstate
+mobile/**/xcdebugger/
+mobile/**/*.moved-aside
+mobile/**/*.hmap
+mobile/**/*.ipa
+mobile/**/*.dSYM.zip
+mobile/**/*.dSYM
+
+# Registros
+*.log
+npm-debug.log*
+.cache/

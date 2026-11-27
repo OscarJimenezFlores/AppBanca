@@ -1,0 +1,196 @@
+{
+  "info": {
+    "name": "AndesBank laboratorio",
+    "description": "Colección del API de laboratorio. Importe también el entorno. La clave de demostración es Andes.2026. Carlos Mendoza exige un código TOTP vigente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://127.0.0.1:8080"},
+    {"key": "accessToken", "value": ""},
+    {"key": "refreshToken", "value": ""},
+    {"key": "challengeToken", "value": ""},
+    {"key": "accountId", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Operación",
+      "item": [
+        {"name": "Health", "request": {"method": "GET", "url": "{{baseUrl}}/health"}},
+        {"name": "Ready", "request": {"method": "GET", "url": "{{baseUrl}}/ready"}}
+      ]
+    },
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "Login María por DNI",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "pm.test('entra sin OTP', () => pm.expect(body.requires_otp).to.eql(false));",
+            "pm.collectionVariables.set('accessToken', body.access_token);",
+            "pm.collectionVariables.set('refreshToken', body.refresh_token);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"identifier\": \"45821367\",\n  \"password\": \"Andes.2026\"\n}"},
+            "url": "{{baseUrl}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Login Carlos, pide OTP",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "pm.test('pide OTP', () => pm.expect(body.requires_otp).to.eql(true));",
+            "pm.collectionVariables.set('challengeToken', body.challenge_token);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"identifier\": \"carlos.mendoza@correo.pe\",\n  \"password\": \"Andes.2026\"\n}"},
+            "url": "{{baseUrl}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Confirmar OTP de Carlos",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "if (body.access_token) pm.collectionVariables.set('accessToken', body.access_token);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"challenge_token\": \"{{challengeToken}}\",\n  \"code\": \"000000\"\n}"},
+            "url": "{{baseUrl}}/api/v1/auth/otp",
+            "description": "Reemplace 000000 por el código vigente. Con la semilla de demostración: docker compose exec api python -c \"import pyotp; print(pyotp.TOTP('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ').now())\""
+          }
+        },
+        {
+          "name": "Perfil",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{accessToken}}"}],
+            "url": "{{baseUrl}}/api/v1/me"
+          }
+        },
+        {
+          "name": "Renovar sesión",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "if (body.access_token) pm.collectionVariables.set('accessToken', body.access_token);",
+            "if (body.refresh_token) pm.collectionVariables.set('refreshToken', body.refresh_token);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"},
+            "url": "{{baseUrl}}/api/v1/auth/refresh"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cuentas y transferencias",
+      "item": [
+        {
+          "name": "Cuentas",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "const body = pm.response.json();",
+            "const ahorro = body.find((item) => item.number === '00110000004821');",
+            "if (ahorro) pm.collectionVariables.set('accountId', ahorro.id);"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{accessToken}}"}],
+            "url": "{{baseUrl}}/api/v1/accounts"
+          }
+        },
+        {
+          "name": "Movimientos",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{accessToken}}"}],
+            "url": "{{baseUrl}}/api/v1/accounts/{{accountId}}/movements?page=1&page_size=20"
+          }
+        },
+        {
+          "name": "Transferencia interna",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{accessToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n  \"origin_account_id\": \"{{accountId}}\",\n  \"destination_account_number\": \"00110000007751\",\n  \"amount\": \"25.50\",\n  \"concept\": \"Almuerzo del viernes\"\n}"},
+            "url": "{{baseUrl}}/api/v1/transfers"
+          }
+        },
+        {
+          "name": "Transferencia interbancaria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{accessToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n  \"origin_account_id\": \"{{accountId}}\",\n  \"destination_cci\": \"99800112345678901234\",\n  \"destination_holder\": \"Inversiones Colchane\",\n  \"amount\": \"40.00\",\n  \"concept\": \"Factura 1844\"\n}"},
+            "url": "{{baseUrl}}/api/v1/transfers"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pagos, tarjetas y seguridad",
+      "item": [
+        {
+          "name": "Catálogo de servicios",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{accessToken}}"}],
+            "url": "{{baseUrl}}/api/v1/payments/services"
+          }
+        },
+        {
+          "name": "Pagar la universidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{accessToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n  \"origin_account_id\": \"{{accountId}}\",\n  \"service_code\": \"UPTSERV\",\n  \"reference\": \"20240018\",\n  \"amount\": \"15.00\"\n}"},
+            "url": "{{baseUrl}}/api/v1/payments"
+          }
+        },
+        {
+          "name": "Tarjetas",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{accessToken}}"}],
+            "url": "{{baseUrl}}/api/v1/cards"
+          }
+        },
+        {
+          "name": "Preparar TOTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{accessToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{}"},
+            "url": "{{baseUrl}}/api/v1/security/totp/setup"
+          }
+        },
+        {
+          "name": "Agencias cerca de la plaza",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{accessToken}}"}],
+            "url": "{{baseUrl}}/api/v1/branches?latitude=-18.014&longitude=-70.254"
+          }
+        }
+      ]
+    }
+  ]
+}

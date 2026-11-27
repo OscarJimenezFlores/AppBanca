@@ -1,0 +1,52 @@
+name: andesbank
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: andes
+      POSTGRES_PASSWORD: andes_local
+      POSTGRES_DB: andesbank
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U andes -d andesbank"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - andes_pg:/var/lib/postgresql/data
+
+  api:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql+psycopg://andes:andes_local@db:5432/andesbank
+      JWT_SECRET: local-dev-secret-change-before-any-real-deploy
+      ACCESS_TOKEN_MINUTES: "15"
+      REFRESH_TOKEN_DAYS: "7"
+      APP_ENV: local
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  tests:
+    profiles: ["test"]
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://andes:andes_local@db:5432/andesbank_test
+      JWT_SECRET: test-secret-test-secret-test-secret
+      APP_ENV: test
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "python -m app.dev.create_database && pytest -q"]
+
+volumes:
+  andes_pg:

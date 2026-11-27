@@ -1,0 +1,50 @@
+name: Despliegue continuo
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Entorno de destino
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+        default: development
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'development' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir la imagen del API
+        run: docker build -t andesbank-api:${{ github.sha }} backend
+      - name: Publicar la imagen
+        if: ${{ vars.REGISTRY != '' && vars.IMAGE_NAME != '' }}
+        env:
+          REGISTRY: ${{ vars.REGISTRY }}
+          IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: |
+          echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY" -u "$REGISTRY_USER" --password-stdin
+          docker tag "andesbank-api:${{ github.sha }}" "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
+          docker tag "andesbank-api:${{ github.sha }}" "$REGISTRY/$IMAGE_NAME:latest"
+          docker push "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
+          docker push "$REGISTRY/$IMAGE_NAME:latest"
+
+  smoke:
+    needs: image
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'development' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Humo contra el entorno
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          TARGET: ${{ github.event.inputs.environment || 'development' }}
+        run: bash scripts/smoke.sh

@@ -1,0 +1,24 @@
+name: Humo por entorno
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Entorno que se va a probar
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Humo
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          TARGET: ${{ inputs.environment }}
+        run: bash scripts/smoke.sh
